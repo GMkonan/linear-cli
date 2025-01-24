@@ -10,6 +10,7 @@ import (
 const baseURL = "https://api.linear.app/graphql"
 
 var client *resty.Client
+var teamId string
 
 func init() {
 	client = resty.New()
@@ -24,6 +25,11 @@ func init() {
 		panic("LINEAR_API_KEY environment variable is not set")
 	}
 
+	teamId = os.Getenv("TEAM_ID")
+	if teamId == "" {
+		panic("TEAM_ID environment variable is not set")
+	}
+
 	client.SetHeader("Authorization", apiKey)
 	client.SetHeader("Content-Type", "application/json")
 }
@@ -31,7 +37,7 @@ func init() {
 func CreateIssue(title string, description string) string {
 	mutation := fmt.Sprintf(`
     mutation {
-        issueCreate(input: {title: "%s", description: "%s"}) {
+        issueCreate(input: {teamId: "%s" ,title: "%s", description: "%s"}) {
             success
             issue {
                 id
@@ -40,7 +46,7 @@ func CreateIssue(title string, description string) string {
             }
         }
     }
-    `, title, description)
+    `, teamId, title, description)
 
 	resp, err := client.R().
 		SetBody(map[string]string{"query": mutation}).
