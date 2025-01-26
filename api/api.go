@@ -34,10 +34,10 @@ func init() {
 	client.SetHeader("Content-Type", "application/json")
 }
 
-func CreateIssue(title string, description string) string {
+func CreateIssue(title string) string {
 	mutation := fmt.Sprintf(`
     mutation {
-        issueCreate(input: {teamId: "%s" ,title: "%s", description: "%s"}) {
+        issueCreate(input: {teamId: "%s" ,title: "%s"}) {
             success
             issue {
                 id
@@ -46,7 +46,7 @@ func CreateIssue(title string, description string) string {
             }
         }
     }
-    `, teamId, title, description)
+    `, teamId, title)
 
 	resp, err := client.R().
 		SetBody(map[string]string{"query": mutation}).

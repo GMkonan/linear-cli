@@ -22,7 +22,7 @@ to quickly create a Cobra application.`,
 		fmt.Println("issue called")
 
 		fmt.Println(message)
-		result := api.CreateIssue(message, "")
+		result := api.CreateIssue(message)
 		fmt.Println(result)
 	},
 }
