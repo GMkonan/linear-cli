@@ -22,8 +22,11 @@ to quickly create a Cobra application.`,
 		fmt.Println("issue called")
 
 		fmt.Println(message)
-		result := api.CreateIssue(message)
-		fmt.Println(result)
+		result, _ := api.CreateIssue(message)
+
+		// make this with colors
+		fmt.Println("Creating issue...")
+		fmt.Println("branch name:", result.BranchName)
 	},
 }
 

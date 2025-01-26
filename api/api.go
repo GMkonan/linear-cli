@@ -1,10 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/joho/godotenv"
-	"os"
 )
 
 const baseURL = "https://api.linear.app/graphql"
@@ -34,7 +36,27 @@ func init() {
 	client.SetHeader("Content-Type", "application/json")
 }
 
-func CreateIssue(title string) string {
+type Issue struct {
+	ID         string `json:"id"`
+	Title      string `json:"title"`
+	BranchName string `json:"branchName"`
+}
+
+func CreateIssue(title string) (*Issue, error) {
+
+	type GraphqlResponse struct {
+		Data struct {
+			IssueCreate struct {
+				Success bool `json:"success"`
+				Issue   struct {
+					ID         string `json:"id"`
+					Title      string `json:"title"`
+					BranchName string `json:"branchName"`
+				} `json:"issue"`
+			} `json:"issueCreate"`
+		} `json:"data"`
+	}
+
 	mutation := fmt.Sprintf(`
     mutation {
         issueCreate(input: {teamId: "%s" ,title: "%s"}) {
@@ -56,6 +78,21 @@ func CreateIssue(title string) string {
 		panic(err)
 	}
 
-	// fmt.Println(resp.String())
-	return resp.String()
+	var response GraphqlResponse
+	err = json.Unmarshal(resp.Body(), &response)
+	if err != nil {
+		return &Issue{}, fmt.Errorf("Failed to parse response: %w", err)
+	}
+
+	if !response.Data.IssueCreate.Success {
+		return &Issue{}, fmt.Errorf("Issue creation failed")
+	}
+
+	issue := response.Data.IssueCreate.Issue
+
+	return &Issue{
+		ID:         issue.ID,
+		Title:      issue.Title,
+		BranchName: issue.BranchName,
+	}, nil
 }
