@@ -42,7 +42,7 @@ type Issue struct {
 	BranchName string `json:"branchName"`
 }
 
-func CreateIssue(title string) (*Issue, error) {
+func CreateIssue(title string, state string) (*Issue, error) {
 
 	type GraphqlResponse struct {
 		Data struct {
@@ -59,7 +59,7 @@ func CreateIssue(title string) (*Issue, error) {
 
 	mutation := fmt.Sprintf(`
     mutation {
-        issueCreate(input: {teamId: "%s" ,title: "%s"}) {
+		issueCreate(input: {teamId: "%s" ,title: "%s", stateId: "%s"}) {
             success
             issue {
                 id
@@ -68,7 +68,62 @@ func CreateIssue(title string) (*Issue, error) {
             }
         }
     }
-    `, teamId, title)
+    `, teamId, title, state)
+
+	resp, err := client.R().
+		SetBody(map[string]string{"query": mutation}).
+		Post(baseURL)
+
+	if err != nil {
+		panic(err)
+	}
+
+	var response GraphqlResponse
+	err = json.Unmarshal(resp.Body(), &response)
+	if err != nil {
+		return &Issue{}, fmt.Errorf("Failed to parse response: %w", err)
+	}
+
+	if !response.Data.IssueCreate.Success {
+		return &Issue{}, fmt.Errorf("Issue creation failed")
+	}
+
+	issue := response.Data.IssueCreate.Issue
+
+	return &Issue{
+		ID:         issue.ID,
+		Title:      issue.Title,
+		BranchName: issue.BranchName,
+	}, nil
+}
+
+func ListIssues() (*Issue, error) {
+
+	type GraphqlResponse struct {
+		Data struct {
+			IssueCreate struct {
+				Success bool `json:"success"`
+				Issue   struct {
+					ID         string `json:"id"`
+					Title      string `json:"title"`
+					BranchName string `json:"branchName"`
+				} `json:"issue"`
+			} `json:"issueCreate"`
+		} `json:"data"`
+	}
+
+	mutation := fmt.Sprintf(`
+    mutation {
+		issueCreate(input: {teamId: "%s" ,title: "%s", stateId: "%s"}) {
+            success
+            issue {
+                id
+                title
+		branchName
+            }
+        }
+    }
+    `, teamId, title, state)
 
 	resp, err := client.R().
 		SetBody(map[string]string{"query": mutation}).
