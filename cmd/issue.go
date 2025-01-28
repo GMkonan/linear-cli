@@ -23,7 +23,7 @@ to quickly create a Cobra application.`,
 		fmt.Println("issue called")
 
 		fmt.Println(message)
-		result, err := api.CreateIssue(message, "Backlog")
+		result, err := api.CreateIssue(message)
 		if err != nil {
 			fmt.Println(err)
 		}

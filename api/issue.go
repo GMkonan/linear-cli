@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -13,50 +14,40 @@ type Issue struct {
 }
 
 type IssueCreate struct {
-	Success bool  `json:"success"`
-	Issue   Issue `json:"issue"`
+	IssueCreate struct { // Nested struct matching the operation name
+		Success bool  `json:"success"`
+		Issue   Issue `json:"issue"`
+	} `json:"issueCreate"` // Field name matches the GraphQL operation
 }
 
-func CreateIssue(title string, state string) (*Issue, error) {
+func CreateIssue(title string) (*Issue, error) {
+	mutation := `
+	mutation IssueCreate($teamId: String!, $title: String!) {
+ 		issueCreate(input: {teamId: $teamId ,title: $title}) {
+             success
+             issue {
+                 id
+                 title
+ 		branchName
+             }
+         }
+     }
+    `
 
-	mutation := fmt.Sprintf(`
-    mutation {
-		issueCreate(input: {teamId: "%s" ,title: "%s"}) {
-            success
-            issue {
-                id
-                title
-		branchName
-            }
-        }
-    }
-    `, teamId, title)
+	variables := map[string]interface{}{
+		"teamId": teamId,
+		"title":  title,
+	}
 
-	resp, err := client.R().
-		SetBody(map[string]string{"query": mutation}).
-		Post(baseURL)
-
+	var result IssueCreate
+	err := ExecuteMutation(mutation, variables, &result)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+	fmt.Println(result)
 
-	var response GraphqlResponse[IssueCreate]
-	err = json.Unmarshal(resp.Body(), &response)
-	if err != nil {
-		return &Issue{}, fmt.Errorf("Failed to parse response: %w", err)
-	}
-
-	if !response.Data.Operation.Success {
-		return &Issue{}, fmt.Errorf("Issue creation failed")
-	}
-
-	issue := response.Data.Operation.Issue
-
-	return &Issue{
-		ID:         issue.ID,
-		Title:      issue.Title,
-		BranchName: issue.BranchName,
-	}, nil
+	fmt.Printf("Created issue with ID: %s\n", result.IssueCreate.Issue.ID)
+	return &result.IssueCreate.Issue, nil
 }
 
 type Team struct {
@@ -111,7 +102,7 @@ func ListIssues() (*Team, error) {
 		panic(err)
 	}
 
-	var response GraphqlResponse[Team]
+	var response Team
 	err = json.Unmarshal(resp.Body(), &response)
 	if err != nil {
 		return &Team{}, fmt.Errorf("Failed to parse response: %w", err)
@@ -121,7 +112,7 @@ func ListIssues() (*Team, error) {
 	// 	return &Team{}, fmt.Errorf("Issue creation failed")
 	// }
 	fmt.Println(response)
-	issues := response.Data.Operation
+	issues := response
 
 	return &issues, nil
 }
