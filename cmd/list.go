@@ -26,7 +26,10 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println(result)
+		fmt.Println(result.Team.Issues.Nodes[0].Title)
+		for i := 0; i < len(result.Team.Issues.Nodes); i++ {
+			fmt.Println(result.Team.Issues.Nodes[i].Title)
+		}
 
 	},
 }

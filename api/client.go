@@ -53,8 +53,7 @@ type GraphQLError struct {
 	Path    []string `json:"path,omitempty"`
 }
 
-// ExecuteMutation performs a GraphQL mutation and unmarshals the response into the provided result interface
-func ExecuteMutation(mutation string, variables map[string]interface{}, result interface{}) error {
+func GraphQL(mutation string, variables map[string]interface{}, result interface{}) error {
 	// Create the request body
 	requestBody := GraphQLRequest{
 		Query:     mutation,

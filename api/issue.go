@@ -1,7 +1,7 @@
 package api
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -40,7 +40,7 @@ func CreateIssue(title string) (*Issue, error) {
 	}
 
 	var result IssueCreate
-	err := ExecuteMutation(mutation, variables, &result)
+	err := GraphQL(mutation, variables, &result)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,28 +51,30 @@ func CreateIssue(title string) (*Issue, error) {
 }
 
 type Team struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Issues struct {
-		Nodes []struct {
-			ID    string `json:"id"`
-			Title string `json:"title"`
-			State struct {
-				ID   string `json:"id"`
-				Name string `json:"name"`
-			} `json:"state"`
-			Assignee      any       `json:"assignee"`
-			PriorityLabel string    `json:"priorityLabel"`
-			UpdatedAt     time.Time `json:"updatedAt"`
-		} `json:"nodes"`
-	} `json:"issues"`
+	Team struct { // Nested struct matching the operation name
+		ID     string `json:"id"`
+		Name   string `json:"name"`
+		Issues struct {
+			Nodes []struct {
+				ID    string `json:"id"`
+				Title string `json:"title"`
+				State struct {
+					ID   string `json:"id"`
+					Name string `json:"name"`
+				} `json:"state"`
+				Assignee      any       `json:"assignee"`
+				PriorityLabel string    `json:"priorityLabel"`
+				UpdatedAt     time.Time `json:"updatedAt"`
+			} `json:"nodes"`
+		} `json:"issues"`
+	} `json:"Team"` // Field name matches the GraphQL operation
 }
 
 func ListIssues() (*Team, error) {
 
-	query := fmt.Sprintf(`
-    query Team {
-  team(id: "%s") {
+	query := `
+	query Team($id: String!) {
+  team(id: $id) {
     id
     name
     issues {
@@ -92,27 +94,17 @@ func ListIssues() (*Team, error) {
       }
     }
   }
-}`, teamId)
-	fmt.Println(query)
-	resp, err := client.R().
-		SetBody(map[string]interface{}{"query": query}).
-		Get(baseURL)
-	fmt.Println(resp)
-	if err != nil {
-		panic(err)
+}`
+	variables := map[string]interface{}{
+		"id": teamId,
 	}
 
-	var response Team
-	err = json.Unmarshal(resp.Body(), &response)
+	var result Team
+	err := GraphQL(query, variables, &result)
 	if err != nil {
-		return &Team{}, fmt.Errorf("Failed to parse response: %w", err)
+		log.Fatal(err)
 	}
+	// fmt.Println(result)
 
-	// if !response.Data.Operation.Success {
-	// 	return &Team{}, fmt.Errorf("Issue creation failed")
-	// }
-	fmt.Println(response)
-	issues := response
-
-	return &issues, nil
+	return &result, nil
 }
