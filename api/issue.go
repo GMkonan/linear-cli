@@ -21,7 +21,7 @@ func CreateIssue(title string, state string) (*Issue, error) {
 
 	mutation := fmt.Sprintf(`
     mutation {
-		issueCreate(input: {teamId: "%s" ,title: "%s", stateId: "%s"}) {
+		issueCreate(input: {teamId: "%s" ,title: "%s"}) {
             success
             issue {
                 id
@@ -30,7 +30,7 @@ func CreateIssue(title string, state string) (*Issue, error) {
             }
         }
     }
-    `, teamId, title, state)
+    `, teamId, title)
 
 	resp, err := client.R().
 		SetBody(map[string]string{"query": mutation}).
@@ -84,7 +84,6 @@ func ListIssues() (*Team, error) {
   team(id: "%s") {
     id
     name
-
     issues {
       nodes {
         id
@@ -103,11 +102,11 @@ func ListIssues() (*Team, error) {
     }
   }
 }`, teamId)
-
+	fmt.Println(query)
 	resp, err := client.R().
-		SetBody(map[string]string{"query": query}).
-		Post(baseURL)
-
+		SetBody(map[string]interface{}{"query": query}).
+		Get(baseURL)
+	fmt.Println(resp)
 	if err != nil {
 		panic(err)
 	}
@@ -121,10 +120,8 @@ func ListIssues() (*Team, error) {
 	// if !response.Data.Operation.Success {
 	// 	return &Team{}, fmt.Errorf("Issue creation failed")
 	// }
+	fmt.Println(response)
+	issues := response.Data.Operation
 
-	// issues := response.Data.Operation.Issues
-
-	return &Team{
-		// ID: issues.nodes.ID,
-	}, nil
+	return &issues, nil
 }

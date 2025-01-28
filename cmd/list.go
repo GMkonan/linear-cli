@@ -1,11 +1,11 @@
 /*
 Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
+	"linear-cli/api"
 
 	"github.com/spf13/cobra"
 )
@@ -22,6 +22,12 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("list called")
+		result, err := api.ListIssues()
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(result)
+
 	},
 }
 
