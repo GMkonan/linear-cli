@@ -56,9 +56,10 @@ type Team struct {
 		Name   string `json:"name"`
 		Issues struct {
 			Nodes []struct {
-				ID    string `json:"id"`
-				Title string `json:"title"`
-				State struct {
+				ID         string `json:"id"`
+				Identifier string `json:"identifier"`
+				Title      string `json:"title"`
+				State      struct {
 					ID   string `json:"id"`
 					Name string `json:"name"`
 				} `json:"state"`
@@ -80,6 +81,7 @@ func ListIssues() (*Team, error) {
     issues {
       nodes {
         id
+	identifier
         title
         state {
           id
