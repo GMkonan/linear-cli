@@ -6,6 +6,7 @@ import (
 	"linear-cli/cmd/issue"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 	"github.com/spf13/cobra"
 )
 
@@ -15,6 +16,12 @@ func headerStyle(n int) lipgloss.Style {
 		Underline(true).UnderlineSpaces(true).
 		Width(n)
 	return style
+}
+
+type Row struct {
+	identifier string
+	name       string
+	status     string
 }
 
 // listCmd represents the list command
@@ -35,29 +42,45 @@ to quickly create a Cobra application.`,
 			fmt.Println(err)
 		}
 
-		// var title = "\033[4mTITLE\033[0m"
-		var style = lipgloss.NewStyle().MarginRight(2)
+		var rows [][]string
 
-		var title = "TITLE"
-		var id = "ID"
-		var status = "STATUS"
-		var titleZ = result.Team.Issues.Nodes[0].Title
-		var idZ = result.Team.Issues.Nodes[0].Identifier
-		var statusZ = result.Team.Issues.Nodes[0].State.Name
-
-		var titleStyle = headerStyle(56)
-		var idStyle = headerStyle(5)
-		var statusStyle = headerStyle(12)
-
-		var i = lipgloss.JoinVertical(lipgloss.Left, idStyle.Render(id), idZ)
-		var t = lipgloss.JoinVertical(lipgloss.Left, titleStyle.Render(title), titleZ)
-		var s = lipgloss.JoinVertical(lipgloss.Left, statusStyle.Render(status), statusZ)
-		fmt.Println(lipgloss.JoinHorizontal(lipgloss.Left, style.Render(i), t, s))
-
-		for i := 1; i < len(result.Team.Issues.Nodes); i++ {
-			fmt.Printf("%s  %s  %s \n", result.Team.Issues.Nodes[i].Identifier, result.Team.Issues.Nodes[i].Title, result.Team.Issues.Nodes[i].State.Name)
+		for i := 0; i < len(result.Team.Issues.Nodes); i++ {
+			row := []string{
+				result.Team.Issues.Nodes[i].Identifier,
+				result.Team.Issues.Nodes[i].Title,
+				result.Team.Issues.Nodes[i].State.Name,
+			}
+			rows = append(rows, row)
 		}
 
+		ta := table.New().
+			BorderHeader(false).
+			BorderBottom(false).
+			BorderTop(false).
+			BorderLeft(false).
+			BorderRight(false).
+			BorderColumn(false).
+			Border(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+			StyleFunc(func(row, col int) lipgloss.Style {
+				switch {
+				case row == table.HeaderRow:
+					if col == 0 {
+						return headerStyle(10)
+					}
+					if col == 1 {
+
+						return headerStyle(60)
+					}
+					return headerStyle(20)
+				default:
+					return lipgloss.NewStyle().Bold(true)
+				}
+			}).
+			Headers("ID", "TITLE", "STATUS").
+			Rows(rows...)
+
+		fmt.Println(ta)
 	},
 }
 
