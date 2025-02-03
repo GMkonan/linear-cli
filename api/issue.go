@@ -74,11 +74,17 @@ type Team struct {
 func ListIssues() (*Team, error) {
 
 	query := `
-	query Team($id: String!) {
+	query Team($id: String!, $userId: ID) {
   team(id: $id) {
     id
     name
-    issues {
+    issues(filter:  {
+       assignee:  {
+          id:  {
+             eq: $userId
+          }
+       }
+    }) {
       nodes {
         id
 	identifier
@@ -98,7 +104,8 @@ func ListIssues() (*Team, error) {
   }
 }`
 	variables := map[string]interface{}{
-		"id": teamId,
+		"id":     teamId,
+		"userId": "08c25e3a-0e0a-413a-bf5d-78f0e2ed4618",
 	}
 
 	var result Team
