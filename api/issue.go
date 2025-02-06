@@ -59,6 +59,7 @@ type Team struct {
 				ID         string `json:"id"`
 				Identifier string `json:"identifier"`
 				Title      string `json:"title"`
+				BranchName string `json:"branchName"`
 				State      struct {
 					ID   string `json:"id"`
 					Name string `json:"name"`
@@ -74,7 +75,7 @@ type Team struct {
 func ListIssues() (*Team, error) {
 
 	query := `
-	query Team($id: String!, $userId: ID) {
+	query Team($id: String!, $userId: ID, $status: [String!]) {
   team(id: $id) {
     id
     name
@@ -83,12 +84,20 @@ func ListIssues() (*Team, error) {
           id:  {
              eq: $userId
           }
+       },
+       state:  {
+        or: [ {
+          name: {
+            in: $status
+          }
+          }]
        }
     }) {
       nodes {
         id
 	identifier
         title
+	branchName
         state {
           id
           name
@@ -103,9 +112,21 @@ func ListIssues() (*Team, error) {
     }
   }
 }`
+
+	myIssuesOnly := true
+
+	status := []string{"Todo", "In Progress"}
+
 	variables := map[string]interface{}{
 		"id":     teamId,
-		"userId": "08c25e3a-0e0a-413a-bf5d-78f0e2ed4618",
+		"status": status,
+	}
+
+	if myIssuesOnly == true {
+		// variables["userId"] = "08c25e3a-0e0a-413a-bf5d-78f0e2ed4618"
+
+		// Work
+		variables["userId"] = "946fed3f-7d25-4279-be1f-068198649b94"
 	}
 
 	var result Team

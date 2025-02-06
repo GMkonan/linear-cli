@@ -12,7 +12,7 @@ import (
 
 func headerStyle(n int) lipgloss.Style {
 	var style = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#808080")).
+		Foreground(lipgloss.Color("#7B8098")).
 		Underline(true).UnderlineSpaces(true).
 		Width(n)
 	return style
@@ -35,7 +35,6 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("list called")
 
 		result, err := api.ListIssues()
 		if err != nil {
@@ -48,7 +47,9 @@ to quickly create a Cobra application.`,
 			row := []string{
 				result.Team.Issues.Nodes[i].Identifier,
 				result.Team.Issues.Nodes[i].Title,
+				// lipgloss.JoinVertical(lipgloss.Left, result.Team.Issues.Nodes[i].Title, result.Team.Issues.Nodes[i].BranchName),
 				result.Team.Issues.Nodes[i].State.Name,
+				result.Team.Issues.Nodes[i].BranchName,
 			}
 			rows = append(rows, row)
 		}
@@ -61,7 +62,7 @@ to quickly create a Cobra application.`,
 			BorderRight(false).
 			BorderColumn(false).
 			Border(lipgloss.NormalBorder()).
-			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#7B8098"))).
 			StyleFunc(func(row, col int) lipgloss.Style {
 				switch {
 				case row == table.HeaderRow:
@@ -70,14 +71,24 @@ to quickly create a Cobra application.`,
 					}
 					if col == 1 {
 
-						return headerStyle(60)
+						return headerStyle(68)
 					}
-					return headerStyle(20)
+					return headerStyle(24)
+				case col == 2:
+					if rows[row][col] == "Todo" {
+
+						return lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#E2E2E2"))
+					}
+
+					return lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#F0BF00"))
+				case col == 0:
+					return lipgloss.NewStyle().Foreground(lipgloss.Color("#A5E2A1"))
 				default:
-					return lipgloss.NewStyle().Bold(true)
+					return lipgloss.NewStyle()
 				}
 			}).
-			Headers("ID", "TITLE", "STATUS").
+			// Priority, updated_at, branch name
+			Headers("ID", "TITLE", "STATUS", "BRANCH").
 			Rows(rows...)
 
 		fmt.Println(ta)
@@ -96,5 +107,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	// listCmd.Flags().BoolP("all", "a", true, "List all issues instead of only your issues")
+	listCmd.Flags().BoolP("all", "a", true, "List all issues instead of only your issues")
 }
