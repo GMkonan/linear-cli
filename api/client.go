@@ -15,8 +15,10 @@ var teamId string
 
 func init() {
 	client = resty.New()
-	fmt.Println("asdasdasd")
-	err := godotenv.Load()
+	// using this like that just to test it out for now...
+	// configDir := fmt.Sprintf("%s/code/projects/linear-cli/.env", os.Getenv("HOME"))
+	configDir := fmt.Sprintf("%s/.config/linear-cli", os.Getenv("HOME"))
+	err := godotenv.Load(configDir)
 	if err != nil {
 		panic("Error loading .env file")
 	}

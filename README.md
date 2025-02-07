@@ -12,6 +12,7 @@ To get `team_id` of linear you have to `CMD + K` and search for `Copy model UUID
 - check config dir (place where we will store env stuff like linear api key)
 - create install script
 
+- adaptative width for columns in tables
 
 
 ### List of commands supported
